@@ -22,12 +22,12 @@ object MergeSort: Sorter {
         var rightIndex = half
 
         while (leftIndex != half && rightIndex != toIndex) {
-            if (c.compare(a[leftIndex], a[rightIndex]) > 0) {
-                work[i] = a[rightIndex]
-                rightIndex++
-            } else {
+            if (c.compare(a[leftIndex], a[rightIndex]) <= 0) {
                 work[i] = a[leftIndex]
                 leftIndex++
+            } else {
+                work[i] = a[rightIndex]
+                rightIndex++
             }
             i++
         }
