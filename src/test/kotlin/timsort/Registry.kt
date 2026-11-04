@@ -20,6 +20,7 @@ val STEPS: List<Step> = listOf(
     // Step(StdlibSort), // 仮実装。最初の段階を追加したら外す
     Step(MergeSort),
     Step(MergeSortWithEarlyReturn, Goal.ASCENDING_LINEAR),
+    Step(MergeSortWithInsertionSort),
 )
 
 class Step(val sorter: Sorter, vararg val newGoals: Goal)
