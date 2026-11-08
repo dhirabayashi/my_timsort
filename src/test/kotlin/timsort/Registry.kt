@@ -21,7 +21,8 @@ val STEPS: List<Step> = listOf(
     Step(MergeSort),
     Step(MergeSortWithEarlyReturn, Goal.ASCENDING_LINEAR),
     Step(MergeSortWithInsertionSort),
-    Step(MergeSortWithBinaryInsertionSort, Goal.NEAR_OPTIMAL_RANDOM)
+    Step(MergeSortWithBinaryInsertionSort, Goal.NEAR_OPTIMAL_RANDOM),
+    Step(NaturalMergeSort),
 )
 
 class Step(val sorter: Sorter, vararg val newGoals: Goal)
