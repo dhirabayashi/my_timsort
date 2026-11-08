@@ -3,10 +3,7 @@ package timsort
 object NaturalMergeSort: Sorter {
     override fun <T> sort(a: Array<T>, fromIndex: Int, toIndex: Int, c: Comparator<in T>) {
         checkRange(fromIndex, toIndex, a.size)
-        sort(a, fromIndex, toIndex, c, a.clone())
-    }
 
-    private fun <T> sort(a: Array<T>, fromIndex: Int, toIndex: Int, c: Comparator<in T>, work: Array<T>) {
         val size = toIndex - fromIndex
         if (size <= 1) {
             return
@@ -18,6 +15,8 @@ object NaturalMergeSort: Sorter {
         }
 
         val runs = findRuns(a, fromIndex, toIndex, c)
+
+        val work = a.copyOfRange(fromIndex, toIndex)
 
         while (runs.size != 1) {
             val runFirst = runs.removeFirst()
@@ -39,7 +38,7 @@ object NaturalMergeSort: Sorter {
                 runs.first()
             }
 
-            var i = leftIndex
+            var i = 0
 
             while (leftIndex != mid && rightIndex != end) {
                 if (c.compare(a[leftIndex], a[rightIndex]) <= 0) {
@@ -64,7 +63,7 @@ object NaturalMergeSort: Sorter {
                 i++
             }
 
-            System.arraycopy(work, runFirst, a, runFirst, end - runFirst)
+            System.arraycopy(work, 0, a, runFirst, end - runFirst)
         }
     }
 
@@ -97,8 +96,9 @@ object NaturalMergeSort: Sorter {
         }
     }
 
-    private fun <T> findRuns(a: Array<T>, fromIndex: Int, toIndex: Int, c: Comparator<in T>): ArrayDeque<Int> {
-        val runs = ArrayDeque<Int>()
+    private fun <T> findRuns(a: Array<T>, fromIndex: Int, toIndex: Int, c: Comparator<in T>): IntQueue {
+        val array = IntArray(toIndex - fromIndex)
+        val runs = IntQueue(array)
         runs.add(fromIndex)
 
         for (i in fromIndex + 1 until toIndex) {
@@ -108,5 +108,74 @@ object NaturalMergeSort: Sorter {
         }
 
         return runs
+    }
+}
+
+private class IntQueue(
+    val array: IntArray,
+) {
+    var size = 0
+    private var head = -1
+    private var tail = -1
+
+    fun first(): Int {
+        if (size == 0) {
+            throw NoSuchElementException()
+        }
+
+        return array[head]
+    }
+
+    fun removeFirst(): Int {
+        if (size == 0) {
+            throw NoSuchElementException()
+        }
+
+        val first = array[head]
+
+        if (head == array.size - 1) {
+            head = 0
+        } else {
+            head++
+        }
+        size--
+
+        return first
+    }
+
+    fun add(elem: Int) {
+        if (array.size == size) {
+            error("容量が足りない")
+        }
+
+        if (tail == array.size - 1) {
+            tail = 0
+        } else {
+            tail++
+        }
+        array[tail] = elem
+        size++
+
+        if (head == -1) {
+            head = 0
+        }
+    }
+
+    fun addFirst(elem: Int) {
+        if (array.size == size) {
+            error("容量が足りない")
+        }
+
+        if (head == 0) {
+            head = array.size - 1
+        } else {
+            head--
+        }
+        array[head] = elem
+        size++
+
+        if (tail == -1) {
+            tail = 0
+        }
     }
 }
