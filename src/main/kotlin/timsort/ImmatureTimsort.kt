@@ -1,6 +1,5 @@
 package timsort
 
-import timsort.util.IntQueue
 import timsort.util.OrderMode
 import kotlin.math.min
 
@@ -25,23 +24,18 @@ object ImmatureTimsort: Sorter {
         val work = a.copyOfRange(fromIndex, toIndex)
 
         while (runs.size != 1) {
-            val runFirst = runs.removeFirst()
-            val mid = runs.removeFirst()
+            val fst = runs.removeFirst()
+            val snd = runs.removeFirst()
 
-            runs.add(runFirst)
-
-            if (runFirst > mid) {
-                runs.addFirst(mid)
+            if (fst.first > snd.first) {
+                runs.addLast(fst)
+                runs.addFirst(snd)
                 continue
             }
 
-            val end = if (runs.size == 1 || runs.first() < mid) {
-                toIndex
-            } else {
-                runs.first()
-            }
+            merge(a, c, fst.first, snd.first, snd.last, work)
 
-            merge(a, c, runFirst, mid, end, work)
+            runs.add((fst.first..snd.last))
         }
     }
 
@@ -78,9 +72,8 @@ object ImmatureTimsort: Sorter {
         }
     }
 
-    private fun <T> findRunsAndReverseDescPart(a: Array<T>, fromIndex: Int, toIndex: Int, c: Comparator<in T>): IntQueue {
-        val array = IntArray(Math.ceilDivExact(toIndex - fromIndex, MIN_RUN))
-        val runs = IntQueue(array)
+    private fun <T> findRunsAndReverseDescPart(a: Array<T>, fromIndex: Int, toIndex: Int, c: Comparator<in T>): ArrayDeque<IntRange> {
+        val runs = ArrayDeque<IntRange>()
 
         var mode = OrderMode.INIT
         var start = fromIndex
@@ -104,7 +97,7 @@ object ImmatureTimsort: Sorter {
                             i = start + MIN_RUN
                             continue
                         } else {
-                            runs.add(start)
+                            runs.add(start..i)
                             start = i
                             mode = OrderMode.INIT
                         }
@@ -120,7 +113,7 @@ object ImmatureTimsort: Sorter {
                             i = start + MIN_RUN
                             continue
                         } else {
-                            runs.add(start)
+                            runs.add(start.. i)
                             start = i
                             mode = OrderMode.INIT
                         }
@@ -131,7 +124,7 @@ object ImmatureTimsort: Sorter {
             i++
         }
 
-        runs.add(start)
+        runs.add(start.. toIndex)
 
         if (mode == OrderMode.DESCENDING) {
             reverse(a, start, toIndex - 1)
