@@ -1,6 +1,7 @@
 package timsort
 
 import timsort.util.OrderMode
+import timsort.util.Run
 import kotlin.math.min
 
 object ImmatureTimsort: Sorter {
@@ -27,15 +28,15 @@ object ImmatureTimsort: Sorter {
             val fst = runs.removeFirst()
             val snd = runs.removeFirst()
 
-            if (fst.first > snd.first) {
+            if (fst.start > snd.start) {
                 runs.addLast(fst)
                 runs.addFirst(snd)
                 continue
             }
 
-            merge(a, c, fst.first, snd.first, snd.last, work)
+            merge(a, c, fst.start, snd.start, snd.endExclusive, work)
 
-            runs.add((fst.first..snd.last))
+            runs.add(fst.merged(snd))
         }
     }
 
@@ -72,8 +73,8 @@ object ImmatureTimsort: Sorter {
         }
     }
 
-    private fun <T> findRunsAndReverseDescPart(a: Array<T>, fromIndex: Int, toIndex: Int, c: Comparator<in T>): ArrayDeque<IntRange> {
-        val runs = ArrayDeque<IntRange>()
+    private fun <T> findRunsAndReverseDescPart(a: Array<T>, fromIndex: Int, toIndex: Int, c: Comparator<in T>): ArrayDeque<Run> {
+        val runs = ArrayDeque<Run>()
 
         var mode = OrderMode.INIT
         var start = fromIndex
@@ -97,7 +98,7 @@ object ImmatureTimsort: Sorter {
                             i = start + MIN_RUN
                             continue
                         } else {
-                            runs.add(start..i)
+                            runs.add(Run(start, i))
                             start = i
                             mode = OrderMode.INIT
                         }
@@ -113,7 +114,7 @@ object ImmatureTimsort: Sorter {
                             i = start + MIN_RUN
                             continue
                         } else {
-                            runs.add(start.. i)
+                            runs.add(Run(start, i))
                             start = i
                             mode = OrderMode.INIT
                         }
@@ -124,7 +125,7 @@ object ImmatureTimsort: Sorter {
             i++
         }
 
-        runs.add(start.. toIndex)
+        runs.add(Run(start, toIndex))
 
         if (mode == OrderMode.DESCENDING) {
             reverse(a, start, toIndex - 1)
