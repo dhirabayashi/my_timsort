@@ -5,8 +5,6 @@ import timsort.util.Run
 import kotlin.math.min
 
 object ImmatureTimsort: Sorter {
-    private const val MIN_RUN = 32
-
     override fun <T> sort(a: Array<T>, fromIndex: Int, toIndex: Int, c: Comparator<in T>) {
         checkRange(fromIndex, toIndex, a.size)
 
@@ -15,28 +13,24 @@ object ImmatureTimsort: Sorter {
             return
         }
 
-        if (size <= 32) {
+        val minRun = computeMinRun(size)
+
+        if (size <= minRun) {
             binaryInsertionSort(a, fromIndex, toIndex, c)
             return
         }
 
-        val runs = findRunsAndReverseDescPart(a, fromIndex, toIndex, c)
-
         val work = a.copyOfRange(fromIndex, toIndex)
 
-        while (runs.size != 1) {
-            val fst = runs.removeFirst()
-            val snd = runs.removeFirst()
+        val restRuns = findRunsAndMerge(a, fromIndex, toIndex, c, work, minRun)
 
-            if (fst.start > snd.start) {
-                runs.addLast(fst)
-                runs.addFirst(snd)
-                continue
-            }
+        while (restRuns.size != 1) {
+            val snd = restRuns.removeLast()
+            val fst = restRuns.removeLast()
 
             merge(a, c, fst.start, snd.start, snd.endExclusive, work)
 
-            runs.add(fst.merged(snd))
+            restRuns.add(fst.merged(snd))
         }
     }
 
@@ -73,7 +67,7 @@ object ImmatureTimsort: Sorter {
         }
     }
 
-    private fun <T> findRunsAndReverseDescPart(a: Array<T>, fromIndex: Int, toIndex: Int, c: Comparator<in T>): ArrayDeque<Run> {
+    private fun <T> findRunsAndMerge(a: Array<T>, fromIndex: Int, toIndex: Int, c: Comparator<in T>, work: Array<T>, minRun: Int): ArrayDeque<Run> {
         val runs = ArrayDeque<Run>()
 
         var mode = OrderMode.INIT
@@ -93,12 +87,12 @@ object ImmatureTimsort: Sorter {
                 }
                 OrderMode.ASCENDING -> {
                     if (compareResult > 0) {
-                        if (i - start < MIN_RUN) {
-                            binaryInsertionSort(a, start, min(toIndex, start + MIN_RUN), c, i)
-                            i = start + MIN_RUN
+                        if (i - start < minRun) {
+                            binaryInsertionSort(a, start, min(toIndex, start + minRun), c, i)
+                            i = start + minRun
                             continue
                         } else {
-                            runs.add(Run(start, i))
+                            addToRunAndMergeIfNeeded(a, c, work, runs, Run(start, i))
                             start = i
                             mode = OrderMode.INIT
                         }
@@ -108,13 +102,13 @@ object ImmatureTimsort: Sorter {
                     if (compareResult <= 0) {
                         reverse(a, start, i - 1)
 
-                        if (i - start < MIN_RUN) {
-                            binaryInsertionSort(a, start, min(toIndex, start + MIN_RUN), c, i)
+                        if (i - start < minRun) {
+                            binaryInsertionSort(a, start, min(toIndex, start + minRun), c, i)
                             mode = OrderMode.ASCENDING
-                            i = start + MIN_RUN
+                            i = start + minRun
                             continue
                         } else {
-                            runs.add(Run(start, i))
+                            addToRunAndMergeIfNeeded(a, c, work, runs, Run(start, i))
                             start = i
                             mode = OrderMode.INIT
                         }
@@ -125,13 +119,60 @@ object ImmatureTimsort: Sorter {
             i++
         }
 
-        runs.add(Run(start, toIndex))
-
         if (mode == OrderMode.DESCENDING) {
             reverse(a, start, toIndex - 1)
         }
 
+        addToRunAndMergeIfNeeded(a, c, work, runs, Run(start, toIndex))
+
         return runs
+    }
+
+    private fun<T> addToRunAndMergeIfNeeded(a: Array<T>, c: Comparator<in T>, work: Array<T>, runs: ArrayDeque<Run>, run: Run) {
+        runs.add(run)
+
+        while (true) {
+            if (runs.size < 2) {
+                return
+            }
+
+            if (runs.size == 2) {
+                val z = runs.removeLast()
+                val y = runs.removeLast()
+
+                if (y.length <= z.length) {
+                    merge(a, c, y.start, z.start, z.endExclusive, work)
+                    runs.add(y.merged(z))
+                } else {
+                    runs.add(y)
+                    runs.add(z)
+                }
+
+                return
+            }
+
+            val z = runs.removeLast()
+            val y = runs.removeLast()
+            val x = runs.removeLast()
+
+            if (x.length > y.length + z.length && y.length > z.length) {
+                runs.add(x)
+                runs.add(y)
+                runs.add(z)
+
+                return
+            }
+
+            if (x.length < z.length) {
+                merge(a, c, x.start, y.start, y.endExclusive, work)
+                runs.add(x.merged(y))
+                runs.add(z)
+            } else {
+                merge(a, c, y.start, z.start, z.endExclusive, work)
+                runs.add(x)
+                runs.add(y.merged(z))
+            }
+        }
     }
 
     private fun <T> swap(a: Array<T>, i: Int, j: Int) {
@@ -181,5 +222,16 @@ object ImmatureTimsort: Sorter {
         }
 
         System.arraycopy(work, 0, a, leftStart, end - leftStart)
+    }
+
+    private fun computeMinRun(size: Int): Int {
+        var n = size
+        var r = 0
+
+        while (n >= 32) {
+            r = r or (n and 1)
+            n = n shr 1
+        }
+        return n + r
     }
 }
