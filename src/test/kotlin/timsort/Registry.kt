@@ -27,6 +27,7 @@ val STEPS: List<Step> = listOf(
     Step(NaturalMergeSortWithMinRun, Goal.DESCENDING_LINEAR),
     Step(NaturalMergeSortWithMinRunV2, Goal.TMP_REUSE),
     Step(ImmatureTimsort),
+    Step(ImmatureTimsortV2),
 )
 
 class Step(val sorter: Sorter, vararg val newGoals: Goal)
