@@ -79,10 +79,21 @@ object ImmatureTimsortV2: Sorter {
         minRun: Int,
         runStack: RunStack
     ) {
-        var mode = OrderMode.INIT
-        var start = fromIndex
+        var runStart = fromIndex
+        while (runStart < toIndex) {
+            val runEndExclusive = findRunAndConvertToAscending(a, runStart, toIndex, c, minRun)
 
-        var i = fromIndex + 1
+            runStack.add(runStart, runEndExclusive)
+            mergeIfNeeded(a, c, work, runStack)
+
+            runStart = runEndExclusive
+        }
+    }
+
+    private fun <T> findRunAndConvertToAscending(a: Array<T>, start: Int, toIndex: Int, c: Comparator<in T>, minRun: Int): Int {
+        var mode = OrderMode.INIT
+
+        var i = start + 1
         while (i < toIndex) {
             val compareResult = c.compare(a[i - 1], a[i])
 
@@ -101,10 +112,7 @@ object ImmatureTimsortV2: Sorter {
                             i = start + minRun
                             continue
                         } else {
-                            runStack.add(start, i)
-                            mergeIfNeeded(a, c, work, runStack)
-                            start = i
-                            mode = OrderMode.INIT
+                            return i
                         }
                     }
                 }
@@ -118,10 +126,7 @@ object ImmatureTimsortV2: Sorter {
                             i = start + minRun
                             continue
                         } else {
-                            runStack.add(start, i)
-                            mergeIfNeeded(a, c, work, runStack)
-                            start = i
-                            mode = OrderMode.INIT
+                            return i
                         }
                     }
                 }
@@ -133,9 +138,7 @@ object ImmatureTimsortV2: Sorter {
         if (mode == OrderMode.DESCENDING) {
             reverse(a, start, toIndex - 1)
         }
-
-        runStack.add(start, toIndex)
-        mergeIfNeeded(a, c, work, runStack)
+        return toIndex
     }
 
     private fun<T> mergeIfNeeded(a: Array<T>, c: Comparator<in T>, work: Array<T>, runStack: RunStack) {
