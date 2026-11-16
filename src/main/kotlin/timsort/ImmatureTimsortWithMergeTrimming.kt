@@ -222,7 +222,13 @@ object ImmatureTimsortWithMergeTrimming: Sorter {
 
     private fun <T> upperBound(a: Array<T>, from: Int, to: Int, key: T, c: Comparator<in T>): Int {
         var ng = from - 1
-        var ok = to
+        var ok = from
+
+        while (ok < to && c.compare(a[ok], key) <= 0) {
+            ng = ok
+            val step = ok - from + 1
+            ok = if (to - ok <= step) to else ok + step
+        }
 
         while (ok - ng > 1) {
             val mid = (ng + ok) / 2
@@ -237,8 +243,14 @@ object ImmatureTimsortWithMergeTrimming: Sorter {
     }
 
     private fun <T> lowerBound(a: Array<T>, from: Int, to: Int, key: T, c: Comparator<in T>): Int {
-        var ng = from - 1
+        var ng = to - 1
         var ok = to
+
+        while (ng >= from && c.compare(a[ng], key) >= 0) {
+            ok = ng
+            val step = to - ng
+            ng = if (ng - from < step) from - 1 else ng - step
+        }
 
         while (ok - ng > 1) {
             val mid = (ng + ok) / 2
