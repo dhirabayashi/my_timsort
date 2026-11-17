@@ -19,17 +19,18 @@ package timsort
 val STEPS: List<Step> = listOf(
     // Step(StdlibSort), // 仮実装。最初の段階を追加したら外す
     Step(MergeSort),
-    Step(MergeSortWithEarlyReturn, Goal.ASCENDING_LINEAR),
-    Step(MergeSortWithInsertionSort),
+//    Step(MergeSortWithEarlyReturn, Goal.ASCENDING_LINEAR),
+//    Step(MergeSortWithInsertionSort),
     Step(MergeSortWithBinaryInsertionSort, Goal.NEAR_OPTIMAL_RANDOM),
-    Step(NaturalMergeSort),
+//    Step(NaturalMergeSort),
 //    Step(NaturalMergeSortDetectingDescRun, Goal.DESCENDING_LINEAR),
     Step(NaturalMergeSortWithMinRun, Goal.DESCENDING_LINEAR),
     Step(NaturalMergeSortWithMinRunV2, Goal.TMP_REUSE),
-    Step(ImmatureTimsort),
-    Step(ImmatureTimsortV2),
+//    Step(ImmatureTimsort),
+//    Step(ImmatureTimsortV2),
     Step(ImmatureTimsortWithMergeTrimming),
     Step(ImmatureTimsortWithMergeLoHi, Goal.TMP_HALF),
+    Step(ImmatureTimsortWithGalloping, Goal.GALLOPING),
 )
 
 class Step(val sorter: Sorter, vararg val newGoals: Goal)
