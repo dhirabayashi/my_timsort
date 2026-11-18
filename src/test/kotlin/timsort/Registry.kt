@@ -32,6 +32,7 @@ val STEPS: List<Step> = listOf(
     Step(ImmatureTimsortWithMergeLoHi, Goal.TMP_HALF),
     Step(ImmatureTimsortWithGalloping, Goal.GALLOPING),
     Step(TimsortWithAdaptiveMinGallop),
+    Step(TimsortSkippingKnownComparisons),
 )
 
 class Step(val sorter: Sorter, vararg val newGoals: Goal)
